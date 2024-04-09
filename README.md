@@ -1,4 +1,4 @@
-# toast notification framework for Dynamics 365
+# Toast Notification Framework for Dynamics 365
 
 - [Summary](#summary)
 - [Demo](#demo)
@@ -6,7 +6,7 @@
 
 ### Summary
 
-My goal with this project was to create tool that non-developers could use to create, edit, dispatch and disable in-app notifications in Dynamics 365.
+My goal with this project was to create tool that non-developers could use to create, edit, dispatch and disable in-app/toast notifications in Dynamics 365.
 
 For more information on the in-app notification feature please see the below links:
 
