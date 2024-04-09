@@ -19,6 +19,7 @@ My goal with this project was to create tool that non-developers could use to cr
 For more information on the in-app notification feature please see the below links:
 
 [MS Learn - Send in-app notifications](https://learn.microsoft.com/en-us/power-apps/developer/model-driven-apps/clientapi/send-in-app-notifications)
+
 [MS Learn - Notification (appnotification) table/entity reference](https://learn.microsoft.com/en-us/power-apps/developer/data-platform/reference/entities/appnotification)
 
 ### Demo
