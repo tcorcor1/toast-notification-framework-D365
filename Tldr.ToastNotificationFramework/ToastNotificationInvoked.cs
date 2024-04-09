@@ -50,11 +50,18 @@ namespace Tldr.ToastNotificationFramework
 						{
 							["Title"] = toastNotification["yyz_toastnotificationtitle"],
 							["Recipient"] = new EntityReference("systemuser", recipientId),
-							["Body"] = toastMessageBody,
 							["IconType"] = (OptionSetValue)toastNotification["yyz_toastnotificationiconcode"],
 							["Priority"] = (OptionSetValue)toastNotification["yyz_toastnotificationprioritycode"],
 							["ToastType"] = new OptionSetValue((int)ToastNotificationBehavior.TIMED),
-							["Expiry"] = 2592000
+							["Expiry"] = 2592000,
+							["OverrideContent"] = new Entity()
+							{
+								Attributes =
+								{
+									["body"] = toastMessageBody,
+									["title"] = toastNotification["yyz_toastnotificationtitle"]
+								}
+							}
 						}
 					};
 
