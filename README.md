@@ -32,6 +32,8 @@ For more information on the in-app notification feature please see the below lin
 
 **[1] Enable the toast notification feature within model-driven apps**
 
+In order to view toast notifications in a model-driven app you must first enable the feature in each app. You can do so by navigating to the settings of your model-driven app, select Features and turn on **In-app notifications**. For more information please see one of my earlier blog posts [here](https://tldr-dynamics.com/blog/in-app-toast-notifications).
+
 **[2] Import solution**
 
 Managed and unmanaged solutions are included in [solutions](./solutions) folder
