@@ -63,6 +63,9 @@ Complete all required fields:
 <ins>Disabling a toast notification</ins>
 Simply deactivating the toast notification message record will deactivate the corresponding sdk processing step message in the background
 
+<ins>Uninstalling the solution</ins>
+If you have created toast notifications already and would like to uninstall the managed solution, unregister the SDK message processing steps underneath the plugin **Tldr.ToastNotificationFramework.ToastNotificationInvoked** in the [plugin registration tool](https://www.nuget.org/packages/Microsoft.CrmSdk.XrmTooling.PluginRegistrationTool/)
+
 **[5] Validating the notification was created**
 If you would like to confirm that your toast notification was created, navigate to https://yourcrm.crm.dynamics.com/api/data/v9.2/appnotifications
 
