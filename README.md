@@ -16,7 +16,7 @@ For more information on the in-app notification feature please see the below lin
 ### Demo
 
 <div>
-  <img align="center" src="./docs/img/dataverse-analytics-147_013.gif" />
+  <img align="center" src="./img/toast-notification-demo.gif" />
 </div>
 
 ### Usage
