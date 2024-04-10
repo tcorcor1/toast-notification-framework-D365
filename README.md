@@ -22,6 +22,8 @@ For more information on the in-app notification feature please see the below lin
 
 [MS Learn - Notification (appnotification) table/entity reference](https://learn.microsoft.com/en-us/power-apps/developer/data-platform/reference/entities/appnotification)
 
+📣 📣 📣 For a more detailed walkthrough of the project please see my blog post: [https://tldr-dynamics.com/blog/toast-notification-framework-dynamics-365](https://tldr-dynamics.com/blog/toast-notification-framework-dynamics-365)
+
 ### Demo
 
 <div>
