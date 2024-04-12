@@ -27,7 +27,7 @@ For more information on the in-app notification feature please see the below lin
 ### Demo
 
 <div>
-  <img align="center" src="./img/toast-notification-demo.gif" />
+  <img align="center" src="./img/toast-notification-framework-dynamics-365-153_01.gif" />
 </div>
 
 ### Usage
