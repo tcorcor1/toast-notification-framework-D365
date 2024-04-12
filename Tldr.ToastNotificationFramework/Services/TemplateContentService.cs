@@ -31,7 +31,6 @@ namespace Tldr.ToastNotificationFramework
 		{
 			TemplateContentItems.ForEach((item) =>
 			{
-				var templateValuesDeconstructed = item.TemplateValue.Split('.');
 				var dynamicsSchemaName = Regex.Replace(item.TemplateValue, "{{|}}", "");
 
 				var hasDynamicsValue = _targetEtn.Attributes.TryGetValue(dynamicsSchemaName, out object value);

@@ -1,6 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Metadata;
+using Microsoft.Xrm.Sdk.Query;
 
 namespace Tldr.ToastNotificationFramework
 {
@@ -18,7 +22,40 @@ namespace Tldr.ToastNotificationFramework
 
 			foreach (var toastNotification in toastNotificationMessageCollection.Entities)
 			{
-				string toastMessageBody = (string)toastNotification["yyz_toastnotificationbody"];
+				var targetEntityId = context.Target.Id;
+				var toastMessageTargetEntity = (string)toastNotification.Attributes["yyz_sdksteptargetentity"];
+				var hasToastNotificationTriggerFilter = toastNotification.Attributes.TryGetValue("yyz_sdksteptriggerfilter", out object sdkStepTriggerFilter);
+
+				if (hasToastNotificationTriggerFilter)
+				{
+					var etnRequest = new RetrieveEntityRequest()
+					{
+						LogicalName = toastMessageTargetEntity,
+						EntityFilters = EntityFilters.Entity
+					};
+
+					var etnResponse = (RetrieveEntityResponse)context.Service.Execute(etnRequest);
+
+					var targetPrimaryIdAttributeName = etnResponse.EntityMetadata.PrimaryIdAttribute;
+
+					var fetchXml = string.Format(
+					@"<fetch>
+                      <entity name='{0}'>
+                        <all-attributes />
+                        <filter type='and'>
+                          <condition attribute='{1}' operator='eq'  uitype='account' value='{2}' />
+                        </filter>
+						{3}
+                      </entity>
+                    </fetch>", toastMessageTargetEntity, targetPrimaryIdAttributeName, targetEntityId, sdkStepTriggerFilter);
+
+					var filterEtnCollection = context.Service.RetrieveMultiple(new FetchExpression(fetchXml));
+
+					if (filterEtnCollection.Entities.Count == 0)
+						return;
+				}
+
+				var toastMessageBody = (string)toastNotification["yyz_toastnotificationbody"];
 
 				var TemplateContentService = new TemplateContentService(toastNotification, context);
 

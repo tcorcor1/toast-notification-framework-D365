@@ -58,11 +58,17 @@ Complete all required fields:
 - SDK Step Type: Select Create or Update indicating what message the background plugin should be registered with
 - SDK Step Target Entity: The schema name of the table that will trigger the toast notification message
 - SDK Step Trigger Fields (comma-delimited): For update messages, provide schema names for fields that should trigger the notification on update
+- SDK Step Trigger Filter (xml): Provide an XML filter that will be used to test the target record meets certain criteria. If not, the alert will not be sent.
 - Toast Notification Title: Customer-facing title of the toast notification. Limited to 30 characters as that is when truncation will kick in on UI. Supports markdown.
 - Toast Notification Priority: Normal or high
 - Toast Notification Icon: Determines icon to be displayed on notification (info, success, failure, warning and mention).
 - Has URL Action: Enables link to target record
 - Toast Notification Body: Supports markdown and {{handlebars}} syntax. One can provide field schema names in handlebar syntax in order to provide formatted values for field types like lookup, currency, etc.
+
+<ins>Using an XML filter trigger</ins>
+If you would like the message to be triggered only when certain criteria are met (i.e. account of certain types, etc) provide XML filter to the toast notification message. An easy way to get this is to write your query in advanced find and export the fetch XML from there. When you have done that, grab the filter and add it to the toast notification message. On the backend your input would be added like this:
+
+<img src="/img/toast-notification-framework-dynamics-365-153_02.png">
 
 <ins>Disabling a toast notification</ins>
 Simply deactivating the toast notification message record will deactivate the corresponding sdk processing step message in the background
@@ -73,9 +79,5 @@ If you have created toast notifications already and would like to uninstall the 
 **[5] Validating the notification was created**
 
 If you would like to confirm that your toast notification was created, navigate to https://yourcrm.crm.dynamics.com/api/data/v9.2/appnotifications
-
-📌 Coming soon 📌
-
-- Adding filters to update messages so that they are only triggered when certain criteria is met
 
 To provide suggestions or feedback please create an issue in this repo and I will respond as soon as I can
