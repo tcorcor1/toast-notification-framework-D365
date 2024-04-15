@@ -43,7 +43,7 @@ namespace Tldr.ToastNotificationFramework
                       <entity name='{0}'>
                         <all-attributes />
                         <filter type='and'>
-                          <condition attribute='{1}' operator='eq'  uitype='account' value='{2}' />
+                          <condition attribute='{1}' operator='eq'  value='{2}' />
                         </filter>
 						{3}
                       </entity>
