@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Json;
 using Microsoft.Xrm.Sdk;
 
 namespace Tldr.ToastNotificationFramework
@@ -34,6 +35,34 @@ namespace Tldr.ToastNotificationFramework
 				};
 
 				context.Service.Update(sdkMessageProcessingStep);
+
+				// Get environment variables & create secure config for MS Teams notifications
+				var hasTeamsNotificationAttribute = context.Target.Attributes.TryGetValue("yyz_hasteamsnotification", out object teamsNotificationEnabled);
+
+				if ((bool)teamsNotificationEnabled)
+				{
+					var environmentVariableCollection = context.GetEnvironmentVariableValues("yyz_TeamsNotificationEndpoint", "yyz_DynamicsHostname");
+
+					var teamsNotificationConfig = new ToastNotificationSecureConfig()
+					{
+						PowerAutomateEndpoint = (string)environmentVariableCollection["yyz_TeamsNotificationEndpoint"],
+						HostUrl = (string)environmentVariableCollection["yyz_DynamicsHostname"],
+					};
+
+					var secureConfigEtn = new Entity("sdkmessageprocessingstepsecureconfig")
+					{
+						["secureconfig"] = JsonSerializer.Serialize(teamsNotificationConfig)
+					};
+
+					var secureConfigId = context.Service.Create(secureConfigEtn);
+
+					var updateSdkStepEtn = new Entity("sdkmessageprocessingstep", ((EntityReference)context.PostImage.Attributes["yyz_sdkstepid"]).Id)
+					{
+						["sdkmessageprocessingstepsecureconfigid"] = new EntityReference("sdkmessageprocessingstepsecureconfig", secureConfigId)
+					};
+
+					context.Service.Update(updateSdkStepEtn);
+				}
 			}
 			catch (Exception ex)
 			{

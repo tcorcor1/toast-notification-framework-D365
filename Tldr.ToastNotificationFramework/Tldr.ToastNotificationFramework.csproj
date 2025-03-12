@@ -91,7 +91,12 @@
   <ItemGroup>
     <Compile Include="Common\Enums.cs" />
     <Compile Include="Common\PluginBase.cs" />
+    <Compile Include="Common\Utils.cs" />
+    <Compile Include="Models\RecipientItem.cs" />
+    <Compile Include="Models\EnvironmentVariable.cs" />
+    <Compile Include="Models\TeamsNotificationConfig.cs" />
     <Compile Include="Models\TemplateContentItem.cs" />
+    <Compile Include="Services\AsyncHelpers.cs" />
     <Compile Include="Services\QueryService.cs" />
     <Compile Include="Services\TemplateContentService.cs" />
     <Compile Include="ToastNotificationCreated.cs" />

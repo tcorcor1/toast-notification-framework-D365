@@ -1,5 +1,9 @@
 ﻿using System;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
@@ -10,6 +14,10 @@ namespace Tldr.ToastNotificationFramework
 {
 	public class ToastNotificationInvoked : PluginBase
 	{
+		public ToastNotificationInvoked (string secureConfig, string unsecureConfig) : base(secureConfig, unsecureConfig)
+		{
+		}
+
 		public override void ExecuteAction (ExecutionContext context)
 		{
 			var queryService = new QueryService(context.Service);
@@ -76,9 +84,9 @@ namespace Tldr.ToastNotificationFramework
 					});
 				};
 
-				var recipientIdCollection = TemplateContentService.GetRecipientIds();
+				var recipientItemCollection = TemplateContentService.GetRecipientItems();
 
-				foreach (var recipientId in recipientIdCollection)
+				foreach (var recipient in recipientItemCollection)
 				{
 					var toastNotificationRequest = new OrganizationRequest()
 					{
@@ -86,19 +94,12 @@ namespace Tldr.ToastNotificationFramework
 						Parameters = new ParameterCollection
 						{
 							["Title"] = toastNotification["yyz_toastnotificationtitle"],
-							["Recipient"] = new EntityReference("systemuser", recipientId),
+							["Recipient"] = new EntityReference("systemuser", recipient.Id),
+							["Body"] = toastMessageBody,
 							["IconType"] = (OptionSetValue)toastNotification["yyz_toastnotificationiconcode"],
 							["Priority"] = (OptionSetValue)toastNotification["yyz_toastnotificationprioritycode"],
 							["ToastType"] = new OptionSetValue((int)ToastNotificationBehavior.TIMED),
-							["Expiry"] = 2592000,
-							["OverrideContent"] = new Entity()
-							{
-								Attributes =
-								{
-									["body"] = toastMessageBody,
-									["title"] = toastNotification["yyz_toastnotificationtitle"]
-								}
-							}
+							["Expiry"] = 2592000
 						}
 					};
 
@@ -109,7 +110,55 @@ namespace Tldr.ToastNotificationFramework
 						toastNotificationRequest.Parameters.Add("Actions", TemplateContentService.GetUrlAction());
 					}
 
-					OrganizationResponse toastNotificationResponse = context.Service.Execute(toastNotificationRequest);
+					var toastNotificationResponse = context.Service.Execute(toastNotificationRequest);
+
+					//
+					// start Teams notifications
+					//
+
+					var hasTeamsNotificationAttribute = toastNotification.Attributes.TryGetValue("yyz_hasteamsnotification", out object teamsNotificationEnabled);
+
+					if (hasTeamsNotificationAttribute && (bool)teamsNotificationEnabled)
+					{
+						var environmentVariablesSecureConfig = JsonSerializer.Deserialize<ToastNotificationSecureConfig>(context.SecureConfig.Setting);
+
+						var hostUrl = environmentVariablesSecureConfig.HostUrl;
+						var powerAutomateEndpoint = environmentVariablesSecureConfig.PowerAutomateEndpoint;
+
+						var targetUrl = $"{hostUrl}?pagetype=entityrecord&etn={toastNotification.Attributes["yyz_sdksteptargetentity"]}&id={context.Target.Id}";
+
+						var teamsMessageItems = new string[]
+						{
+							$"<ins>{(string)toastNotification["yyz_toastnotificationtitle"]}</ins>",
+							toastMessageBody,
+							$"<br>[Click here]({targetUrl}) to view record",
+							$"[DO NOT REPLY] Sent from: {hostUrl}",
+						};
+						var teamsMessageBody = string.Join("\n\n", teamsMessageItems);
+
+						var toastMessageRequest = new
+						{
+							body = teamsMessageBody,
+							recipientEmail = recipient.Email
+						};
+
+						var powerAutomateResponse = Utils.AsyncHelpers.RunSync(async () =>
+						{
+							using (var client = new HttpClient())
+							{
+								client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+								var content = new StringContent(JsonSerializer.Serialize(toastMessageRequest), Encoding.UTF8, "application/json");
+
+								return await client.PostAsync(powerAutomateEndpoint, content);
+							}
+						});
+
+						if (!powerAutomateResponse.IsSuccessStatusCode)
+						{
+							context.TracingService.Trace($"Power Automate POST failure: {(int)powerAutomateResponse.StatusCode} | {powerAutomateResponse.ReasonPhrase}");
+						}
+					}
 				}
 			}
 		}

@@ -57,6 +57,23 @@ namespace Tldr.ToastNotificationFramework
 			return _service.RetrieveMultiple(toastNotificationRecipientCollectionQuery);
 		}
 
+		public Entity GetSystemUserById (Guid id)
+		{
+			var systemUserCollectionQuery = new QueryExpression("systemuser")
+			{
+				ColumnSet = new ColumnSet(new string[] { "systemuserid", "internalemailaddress" })
+			};
+
+			var systemUserCollectionQueryFilter = new FilterExpression(LogicalOperator.And);
+			systemUserCollectionQueryFilter.Conditions.AddRange(new[]
+			{
+				new ConditionExpression("systemuserid", ConditionOperator.Equal, id),
+			});
+			systemUserCollectionQuery.Criteria.AddFilter(systemUserCollectionQueryFilter);
+
+			return _service.RetrieveMultiple(systemUserCollectionQuery).Entities.First();
+		}
+
 		public Entity GetSystemUserByEmail (string email)
 		{
 			var systemUserCollectionQuery = new QueryExpression("systemuser")

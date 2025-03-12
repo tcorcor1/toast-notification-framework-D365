@@ -29,7 +29,9 @@ namespace Tldr.ToastNotificationFramework
 	public enum ToastNotificationRecipientTypeCode
 	{
 		EMAIL = 214220000,
-		LOOKUP = 214220001
+		LOOKUP = 214220001,
+		RELATEDENTITYLOOKUP = 214220002,
+		TEAM = 214220003
 	}
 
 	public enum ToastNotificationBehavior
