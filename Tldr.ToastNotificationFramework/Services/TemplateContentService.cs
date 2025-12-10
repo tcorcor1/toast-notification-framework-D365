@@ -34,38 +34,113 @@ namespace Tldr.ToastNotificationFramework
 		{
 			TemplateContentItems.ForEach((item) =>
 			{
-				var dynamicsSchemaName = Regex.Replace(item.TemplateValue, "{{|}}", "");
-
-				var hasDynamicsValue = _targetEtn.Attributes.TryGetValue(dynamicsSchemaName, out object value);
-
-				if (hasDynamicsValue)
+				try
 				{
-					var attributeType = value.GetType().Name;
+					var dynamicsSchemaName = Regex.Replace(item.TemplateValue, "{{|}}", "");
+					var dynamicsSchemaNameParts = dynamicsSchemaName.Split('.');
 
-					switch (attributeType)
+					if (dynamicsSchemaNameParts.Length == 2)
 					{
-						case "OptionSetValue":
-							item.DynamicsValue = _targetEtn.FormattedValues[dynamicsSchemaName].ToString();
-							break;
+						var hasRelatedEtnAttr = _context.PostImage.Attributes.TryGetValue(dynamicsSchemaNameParts[0], out object relatedEtnValue);
+						if (hasRelatedEtnAttr)
+						{
+							var targetEtnLogicalName = ((EntityReference)relatedEtnValue).LogicalName; //incident
 
-						case "EntityReference":
-							item.DynamicsValue = _targetEtn.FormattedValues[dynamicsSchemaName].ToString();
-							break;
+							var relEtnRequest = new RetrieveEntityRequest()
+							{
+								LogicalName = targetEtnLogicalName,
+								EntityFilters = EntityFilters.Entity
+							};
 
-						case "Decimal":
-							item.DynamicsValue = _targetEtn.FormattedValues[dynamicsSchemaName].ToString();
-							break;
+							var relEtnResponse = (RetrieveEntityResponse)_service.Execute(relEtnRequest);
+							var relEtnPrimaryIdAttributeName = relEtnResponse.EntityMetadata.PrimaryIdAttribute; //incidentid
 
-						case "Money":
-							item.DynamicsValue = _targetEtn.FormattedValues[$"{dynamicsSchemaName}_base"];
-							break;
+							var connectedFromPrimaryAttr = dynamicsSchemaNameParts[0];
+							var relEtnAttributeName = dynamicsSchemaNameParts[1];
 
-						default:
-							item.DynamicsValue = value.ToString();
-							break;
+							var toastTargetEtn = _context.Target.LogicalName;
+
+							var fetchXml = string.Format(@"
+							<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' aggregate='true'>
+							  <entity name='{0}'>
+								<filter type='and'>
+								  <condition attribute='{3}' operator='eq' uitype='{1}' value='{5}' />
+								</filter>
+								<link-entity name='{1}' from='{2}' to='{3}' link-type='inner' alias='alias_{3}'>
+								  <attribute alias='relatedetn' groupby='true' name='{4}' />
+								</link-entity>
+							  </entity>
+							</fetch>", toastTargetEtn, targetEtnLogicalName, relEtnPrimaryIdAttributeName, connectedFromPrimaryAttr, relEtnAttributeName, ((EntityReference)relatedEtnValue).Id);
+
+							var relAttributeRes = _service.RetrieveMultiple(new FetchExpression(fetchXml));
+
+							var relAttributeValue = ((AliasedValue)relAttributeRes.Entities.First().Attributes["relatedetn"]).Value;
+
+							var attributeType = relAttributeValue.GetType().Name;
+
+							switch (attributeType)
+							{
+								case "OptionSetValue":
+									item.DynamicsValue = relAttributeRes.Entities.First().FormattedValues["relatedetn"].ToString();
+									break;
+
+								case "EntityReference":
+									item.DynamicsValue = relAttributeRes.Entities.First().FormattedValues["relatedetn"].ToString();
+									break;
+
+								case "Decimal":
+									item.DynamicsValue = relAttributeRes.Entities.First().FormattedValues["relatedetn"].ToString();
+									break;
+
+								case "Money":
+									item.DynamicsValue = relAttributeRes.Entities.First().FormattedValues["relatedetn"].ToString();
+									break;
+
+								default:
+									item.DynamicsValue = relAttributeValue.ToString();
+									break;
+							}
+						}
+					}
+					else
+					{
+						var hasDynamicsValue = _targetEtn.Attributes.TryGetValue(dynamicsSchemaName, out object value);
+
+						if (hasDynamicsValue)
+						{
+							var attributeType = value.GetType().Name;
+
+							switch (attributeType)
+							{
+								case "OptionSetValue":
+									item.DynamicsValue = _targetEtn.FormattedValues[dynamicsSchemaName].ToString();
+									break;
+
+								case "EntityReference":
+									item.DynamicsValue = _targetEtn.FormattedValues[dynamicsSchemaName].ToString();
+									break;
+
+								case "Decimal":
+									item.DynamicsValue = _targetEtn.FormattedValues[dynamicsSchemaName].ToString();
+									break;
+
+								case "Money":
+									item.DynamicsValue = _targetEtn.FormattedValues[$"{dynamicsSchemaName}_base"];
+									break;
+
+								default:
+									item.DynamicsValue = value.ToString();
+									break;
+							}
+						}
 					}
 				}
-				else
+				catch (Exception e)
+				{
+					_context.TracingService.Trace($"Error processing template content item {item.TemplateValue}.\nError message: {e.Message}\nToast Notification: {_toastNotification.Attributes["yyz_name"]}");
+				}
+
+				if (string.IsNullOrWhiteSpace(item.DynamicsValue))
 				{
 					item.DynamicsValue = item.TemplateValue;
 				}
